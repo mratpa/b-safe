@@ -1,0 +1,116 @@
+- hosts: localhost
+  vars:
+    region: us-east-1
+    image_id:  ami-09e67e426f25ce0d7
+    instance_type: t3.micro
+    project_name: bsafe
+    app_code_user: ubuntu
+    env: staging
+  tasks:
+    - name: creating vpc
+      ec2_vpc_net:
+        name: ma-vpc
+        cidr_block: 172.10.0.0/16
+        region: '{{region}}'
+        state: present
+      register: vpc
+    - name: creating subnet in aws
+      ec2_vpc_subnet:
+        vpc_id: '{{vpc.vpc.id}}'
+        az: '{{region}}f'
+        cidr: 172.10.1.0/24
+        map_public: 'yes'
+        tags:
+          Name: subnet-ma-bsafe-subnet
+        state: present
+        region: '{{region}}'
+      register: subnet
+    - name: creating igw
+      ec2_vpc_igw:
+        vpc_id: '{{vpc.vpc.id}}'
+        state: present
+        region: '{{region}}'
+        tags:
+          Name: igw-ma
+      register: igw
+    - name: creating route table
+      ec2_vpc_route_table:
+        vpc_id: '{{vpc.vpc.id}}'
+        region: '{{region}}'
+        tags:
+          Name: route-ma
+        subnets:
+          - '{{subnet.subnet.id}}'
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: '{{igw.gateway_id}}'
+        state: present
+      register: route_table
+    - name: creating security group
+      ec2_group:
+        name: ma_sec_group
+        description: creating for custom vpc
+        region: '{{region}}'
+        state: present
+        vpc_id: '{{vpc.vpc.id}}'
+        rules:
+          - proto: tcp
+            ports:
+              - 22
+            cidr_ip: 0.0.0.0/0
+      register: sg
+    - name: create an EC2 key
+      ec2_key:
+        name: '{{ project_name }}-{{ env }}-key'
+        region: '{{ region }}'
+      register: ec2_key
+    - name: Save private key
+      copy: content="{{ ec2_key.key.private_key }}" dest="../aws-private.pem" mode=0600
+      when: ec2_key.changed      
+    - name: Creating Master node in ec2 instance
+      ec2:
+        key_name: '{{ project_name }}-{{ env }}-key'
+        instance_type: '{{instance_type}}'
+        image: '{{image_id}}'
+        region: '{{region}}'
+        group_id: '{{sg.group_id}}'
+        count: 1
+        vpc_subnet_id: '{{subnet.subnet.id}}'
+        wait: 'yes'
+        instance_tags:
+          Name: Master
+        state: present
+      register: master_node
+    - name: Creating Slave nodes in ec2 instance
+      ec2:
+        key_name: '{{ project_name }}-{{ env }}-key'
+        instance_type: '{{instance_type}}'
+        image: '{{image_id}}'
+        region: '{{region}}'
+        group_id: '{{sg.group_id}}'
+        count: 1
+        vpc_subnet_id: '{{subnet.subnet.id}}'
+        assign_public_ip: 'yes'
+        wait: 'yes'
+        instance_tags:
+          Name: Slave
+        state: present
+      register: worker_nodes
+    - name: associate new elastic IPs for Master
+      ec2_eip:
+        device_id: "{{ item }}"
+        region: '{{ region }}'
+        in_vpc: yes
+        reuse_existing_ip_allowed: yes
+        state: present
+      with_items: "{{ master_node.instance_ids }}"
+      register: eip_master
+    - name: associate new elastic IPs for Slave
+      ec2_eip:
+        device_id: "{{ item }}"
+        region: '{{ region }}'
+        in_vpc: yes
+        reuse_existing_ip_allowed: yes
+        state: present
+      with_items: "{{ worker_nodes.instance_ids }}"
+      register: eip_nodes 
