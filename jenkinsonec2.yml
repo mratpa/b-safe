@@ -397,7 +397,7 @@ Resources:
 
 #-------------------------------------------------------------------
 
-  EC2Pub1:
+  EC2Pub2:
     Type: AWS::EC2::Instance
     DependsOn:
       - SecGroup4PubServers
@@ -443,6 +443,10 @@ Outputs:
   PublicEC2:
     Description: ID of the public ec2
     Value: !Ref EC2Pub1
+
+  PublicEC2:
+    Description: ID of the public ec2
+    Value: !Ref EC2Pub2
 
   PublicEC2PubIP:
     Description: Public IP for EC2
