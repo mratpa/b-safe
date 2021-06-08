@@ -395,7 +395,7 @@ Resources:
             -v jenkins-home:/var/jenkins_home \
             jenkins/jenkins:jdk11           
 
-#-------------------------------------------------------------------
+ # Public instances ----------------------------------------------------------------
 
   EC2Pub2:
     Type: AWS::EC2::Instance
