@@ -1,0 +1,22 @@
+---
+ - hosts: _Nodes
+  
+   tasks:
+
+   - name: Update APT package manager repositories cache
+     become: true
+     apt:
+        update_cache: yes
+   - name: Install basic list of packages
+     apt:
+        name: ['apt-transport-https','ca-certificates','curl','gnupg2','software-properties-common']
+        state: present
+        update_cache: yes
+
+   - name: Install OpenJDK Java
+     become: yes
+     apt:
+       name: "{{ item }}"
+       state: present
+     with_items:
+       openjdk-8-jdk
