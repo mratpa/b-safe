@@ -8,12 +8,14 @@
      apt:
         update_cache: yes
    - name: Install basic list of packages
+     become: true
      apt:
         name: ['apt-transport-https','ca-certificates','curl','gnupg2','software-properties-common']
         state: present
         update_cache: yes
 
   - name: Install JAVA related Ubuntu packages
+    become: true
     apt:
       name: "{{ packages }}"
       state: latest
