@@ -36,7 +36,8 @@
         state: started
         enabled: yes
   - name: Add Docker GPG key
-    apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+    apt_key: 
+      url: 'https://download.docker.com/linux/ubuntu/gpg'
 
 
   - name: Add Docker APT repository
