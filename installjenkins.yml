@@ -15,7 +15,8 @@
 
   - name: Ensure the jenkins apt repository key is installed
     become: true
-    apt_key: url=https://pkg.jenkins.io/debian-stable/jenkins.io.key 
+    apt_key: 
+      url: 'https://pkg.jenkins.io/debian-stable/jenkins.io.key' 
       state: present
 
   - name: ensure the repository is configured
