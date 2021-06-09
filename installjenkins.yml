@@ -1,63 +1,63 @@
 ---
- - hosts: _Master
+- hosts: _Master
   
-   tasks:
+  tasks:
 
-   - name: Update APT package manager repositories cache
-     become: true
-     apt:
-        update_cache: yes
-   - name: Install basic list of packages
-     apt:
-        name: ['apt-transport-https','ca-certificates','curl','gnupg2','software-properties-common']
-        state: present
-        update_cache: yes
-
-   - name: Install OpenJDK Java
-     become: yes
-     apt:
-       name: "{{ item }}"
-       state: present
-     with_items: 'openjdk-8-jdk'
-
-    - name: ensure the jenkins apt repository key is installed
-      apt_key: url=https://pkg.jenkins.io/debian-stable/jenkins.io.key 
+  - name: Update APT package manager repositories cache
+    become: true
+    apt:
+      update_cache: yes
+  - name: Install basic list of packages
+    apt:
+      name: ['apt-transport-https','ca-certificates','curl','gnupg2','software-properties-common']
       state: present
-      become: yes
+      update_cache: yes
 
-    - name: ensure the repository is configured
-      apt_repository: repo='deb https://pkg.jenkins.io/debian-stable binary/' 
+  - name: Install OpenJDK Java
+    become: yes
+    apt:
+      name: "{{ item }}"
       state: present
-      become: yes
+    with_items: 'openjdk-8-jdk'
 
-    - name: ensure jenkins is installed
-      apt: 
-         name: "jenkins" 
-         update_cache: yes
-      become: yes
+  - name: ensure the jenkins apt repository key is installed
+    apt_key: url=https://pkg.jenkins.io/debian-stable/jenkins.io.key 
+    state: present
+    become: yes
 
-    - name: "Starting jenkins"
-      service:
-          name: "jenkins"
-          state: started
-          enabled: yes
-    - name: Add Docker GPG key
-      apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+  - name: ensure the repository is configured
+    apt_repository: repo='deb https://pkg.jenkins.io/debian-stable binary/' 
+    state: present
+    become: yes
+
+  - name: ensure jenkins is installed
+    apt: 
+        name: "jenkins" 
+        update_cache: yes
+    become: yes
+
+  - name: "Starting jenkins"
+    service:
+        name: "jenkins"
+        state: started
+        enabled: yes
+  - name: Add Docker GPG key
+    apt_key: url=https://download.docker.com/linux/ubuntu/gpg
 
 
-    - name: Add Docker APT repository
-      apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/{{ansible_distribution|lower}} {{ansible_distribution_release}} stable
+  - name: Add Docker APT repository
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/{{ansible_distribution|lower}} {{ansible_distribution_release}} stable
 
-    - name: Install Docker packages
-      apt:
-        name: ['docker-ce','docker-ce-cli','containerd.io']
-        state: present
+  - name: Install Docker packages
+    apt:
+      name: ['docker-ce','docker-ce-cli','containerd.io']
+      state: present
 
-    - name: Install Docker-compose
-      become: yes
-      #  shell: curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      get_url:
-        url: "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-{{ansible_system}}-{{ansible_architecture}}"
-        dest: /usr/local/bin/docker-compose
-        mode: +x
+  - name: Install Docker-compose
+    become: yes
+    #  shell: curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    get_url:
+      url: "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-{{ansible_system}}-{{ansible_architecture}}"
+      dest: /usr/local/bin/docker-compose
+      mode: +x
