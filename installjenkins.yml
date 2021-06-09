@@ -12,7 +12,7 @@
       name: ['apt-transport-https','ca-certificates','curl','gnupg2','software-properties-common', 'openjdk-8-jdk']
       state: present
       update_cache: yes
-
+      
   - name: Ensure the jenkins apt repository key is installed
     apt_key: url=https://pkg.jenkins.io/debian-stable/jenkins.io.key 
     state: present
